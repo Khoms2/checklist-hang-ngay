@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Checklist hằng ngày cho Shopee Runner và Tester - Theo dõi tiến độ học tập và công việc mỗi ngày">
+    <title>📋 Checklist Hằng Ngày | Shopee + Tester</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1 class="app-title">
+                        <span class="title-icon">✅</span>
+                        <span>Daily Checklist</span>
+                    </h1>
+                    <p class="app-subtitle">Shopee + Tester • Mỗi ngày tiến bộ hơn</p>
+                </div>
+                <div class="header-right">
+                    <div class="date-navigator">
+                        <button class="nav-btn" id="prevDay" aria-label="Ngày trước">‹</button>
+                        <div class="date-display" id="dateDisplay">
+                            <span class="date-label" id="dateLabel">Hôm nay</span>
+                            <span class="date-value" id="dateValue">01/05/2026</span>
+                        </div>
+                        <button class="nav-btn" id="nextDay" aria-label="Ngày sau">›</button>
+                    </div>
+                    <button class="reset-btn" id="resetBtn" title="Reset tất cả">
+                        <span>🔄</span> Reset
+                    </button>
+                </div>
+            </div>
+            <!-- Overall Progress -->
+            <div class="overall-progress">
+                <div class="progress-info">
+                    <span class="progress-label">Tiến độ hôm nay</span>
+                    <span class="progress-value" id="overallProgressValue">0%</span>
+                </div>
+                <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="overallProgressBar"></div>
+                </div>
+                <div class="progress-stats">
+                    <span id="completedCount">0</span> / <span id="totalCount">0</span> nhiệm vụ
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="checklist-main" id="checklistMain">
+            <!-- Sections will be rendered by JS -->
+        </main>
+
+        <!-- Streak & Motivation -->
+        <footer class="app-footer">
+            <div class="streak-section">
+                <div class="streak-card">
+                    <span class="streak-icon">🔥</span>
+                    <div class="streak-info">
+                        <span class="streak-number" id="streakCount">0</span>
+                        <span class="streak-label">Ngày liên tiếp</span>
+                    </div>
+                </div>
+                <div class="streak-card">
+                    <span class="streak-icon">🏆</span>
+                    <div class="streak-info">
+                        <span class="streak-number" id="bestStreak">0</span>
+                        <span class="streak-label">Kỷ lục streak</span>
+                    </div>
+                </div>
+                <div class="streak-card">
+                    <span class="streak-icon">📅</span>
+                    <div class="streak-info">
+                        <span class="streak-number" id="totalDays">0</span>
+                        <span class="streak-label">Tổng ngày hoàn thành</span>
+                    </div>
+                </div>
+            </div>
+            <div class="motivation-quote" id="motivationQuote">
+                "Mỗi ngày đều là cơ hội để trở nên giỏi hơn!"
+            </div>
+        </footer>
+    </div>
+
+    <!-- Celebration Overlay -->
+    <div class="celebration-overlay" id="celebrationOverlay">
+        <div class="celebration-content">
+            <div class="celebration-emoji">🎉</div>
+            <h2>Tuyệt vời!</h2>
+            <p>Bạn đã hoàn thành tất cả nhiệm vụ hôm nay!</p>
+            <button class="celebration-close" id="celebrationClose">Tiếp tục 💪</button>
+        </div>
+    </div>
+
+    <!-- Notes Modal -->
+    <div class="modal-overlay" id="notesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="notesTitle">📝 Ghi chú</h3>
+                <button class="modal-close" id="notesClose">✕</button>
+            </div>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Ghi chú của bạn..."></textarea>
+            <div class="modal-actions">
+                <button class="modal-btn save" id="notesSave">💾 Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
