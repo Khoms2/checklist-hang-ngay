@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Checklist hằng ngày cho Shopee Runner và Tester - Theo dõi tiến độ học tập và công việc mỗi ngày">
-    <title>📋 Daily Checklist Hằng Ngày </title>
+    <title>📋 Daily Checklist</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -55,6 +55,7 @@
                         <div class="user-info" id="userInfo" style="display:none">
                             <img class="user-avatar" id="userAvatar" alt="">
                             <span class="user-name" id="userName"></span>
+                            <button class="change-pwd-btn" id="changePwdBtn" title="Đổi mật khẩu">🔑</button>
                             <button class="logout-btn" id="logoutBtn" title="Đăng xuất">🚪</button>
                         </div>
                     </div>
@@ -80,7 +81,8 @@
 
                         <div class="header-actions">
                             <button class="share-btn" id="socialBtn" title="Xem tiến độ bạn bè">👥 BẠN BÈ</button>
-                            <button class="reset-btn" id="resetBtn" title="Xóa toàn bộ tiến độ hôm nay">🗑️ RESET</button>
+                            <button class="reset-btn" id="resetBtn" title="Xóa toàn bộ tiến độ hôm nay">🗑️
+                                RESET</button>
                         </div>
                     </div>
                 </div>
@@ -143,7 +145,7 @@
             <div class="motivation-quote" id="motivationQuote">
                 "Mỗi ngày đều là cơ hội để trở nên giỏi hơn!"
             </div>
-            <div class="version-badge" id="versionBadge">v3.6.1 · 06/05/2026</div>
+            <div class="version-badge" id="versionBadge">v3.7.0 · 06/05/2026</div>
         </footer>
     </div>
 
@@ -195,6 +197,7 @@
                     <button class="login-btn primary" id="loginBtn">Đăng nhập</button>
                     <button class="login-btn secondary" id="registerBtn">Đăng ký</button>
                 </div>
+                <button class="forgot-pwd-link" id="forgotPwdLink">🔒 Quên mật khẩu?</button>
             </div>
             <div class="login-footer">
                 <button class="login-config-btn" id="openConfigBtn">⚙️ Cấu hình Firebase</button>
@@ -382,8 +385,83 @@
         </div>
     </div>
 
-    <script src="sync.js?v=3.6.0"></script>
-    <script src="app.js?v=3.6.0"></script>
+    <!-- Forgot Password Modal -->
+    <div class="modal-overlay" id="forgotPwdModal">
+        <div class="modal-content forgot-pwd-modal">
+            <div class="modal-header">
+                <h3>🔒 Quên mật khẩu</h3>
+                <button class="modal-close" id="forgotPwdClose">✕</button>
+            </div>
+            <div class="forgot-pwd-body">
+                <p class="forgot-pwd-desc">Nhập email đăng ký của bạn. Chúng tôi sẽ gửi link đặt lại mật khẩu.</p>
+                <input type="email" class="login-input" id="forgotPwdEmail" placeholder="Email đăng ký">
+                <div class="forgot-pwd-error" id="forgotPwdError"></div>
+                <div class="forgot-pwd-success" id="forgotPwdSuccess"></div>
+                <button class="modal-btn save forgot-pwd-send" id="forgotPwdSend">📧 Gửi email đặt lại</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTP Verification Modal -->
+    <div class="modal-overlay" id="otpModal">
+        <div class="modal-content otp-modal">
+            <div class="otp-header">
+                <div class="otp-icon">🔐</div>
+                <h3>Xác thực tài khoản</h3>
+                <p class="otp-desc">Mã OTP 5 số đã được gửi đến email<br><strong id="otpTargetEmail">...</strong></p>
+            </div>
+            <div class="otp-body">
+                <div class="otp-inputs" id="otpInputs">
+                    <input type="text" maxlength="1" class="otp-digit" data-otp-index="0" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-otp-index="1" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-otp-index="2" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-otp-index="3" inputmode="numeric">
+                    <input type="text" maxlength="1" class="otp-digit" data-otp-index="4" inputmode="numeric">
+                </div>
+                <div class="otp-error" id="otpError"></div>
+                <div class="otp-timer" id="otpTimer">Mã hết hạn sau: <span id="otpCountdown">05:00</span></div>
+                <button class="modal-btn save otp-verify-btn" id="otpVerifyBtn">✓ Xác nhận OTP</button>
+                <button class="otp-resend-btn" id="otpResendBtn" disabled>Gửi lại mã (<span id="otpResendTimer">60</span>s)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal-overlay" id="changePwdModal">
+        <div class="modal-content change-pwd-modal">
+            <div class="modal-header">
+                <h3>🔑 Đổi mật khẩu</h3>
+                <button class="modal-close" id="changePwdClose">✕</button>
+            </div>
+            <div class="change-pwd-body">
+                <div class="change-pwd-method" id="changePwdMethod">
+                    <p class="change-pwd-desc">Chọn phương thức xác thực:</p>
+                    <button class="method-btn" id="methodEmail">📧 Xác thực qua Email OTP</button>
+                    <button class="method-btn" id="methodCurrentPwd">🔑 Nhập mật khẩu hiện tại</button>
+                </div>
+                <div class="change-pwd-form" id="changePwdForm" style="display:none">
+                    <div class="change-pwd-field" id="currentPwdField">
+                        <label class="edit-label">Mật khẩu hiện tại</label>
+                        <input type="password" class="login-input" id="currentPwd" placeholder="Nhập mật khẩu hiện tại">
+                    </div>
+                    <div class="change-pwd-field">
+                        <label class="edit-label">Mật khẩu mới</label>
+                        <input type="password" class="login-input" id="newPwd" placeholder="Mật khẩu mới (≥ 6 ký tự)">
+                    </div>
+                    <div class="change-pwd-field">
+                        <label class="edit-label">Xác nhận mật khẩu mới</label>
+                        <input type="password" class="login-input" id="confirmNewPwd" placeholder="Nhập lại mật khẩu mới">
+                    </div>
+                    <div class="change-pwd-error" id="changePwdError"></div>
+                    <div class="change-pwd-success" id="changePwdSuccess"></div>
+                    <button class="modal-btn save" id="changePwdSave">💾 Đổi mật khẩu</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sync.js?v=3.7.0"></script>
+    <script src="app.js?v=3.7.0"></script>
 </body>
 
 </html>

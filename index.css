@@ -2626,3 +2626,250 @@ body::before {
 }
 
 .text-link-btn:hover { color: #8899ff; }
+
+/* ===== FORGOT PASSWORD ===== */
+.forgot-pwd-link {
+    background: none;
+    border: none;
+    color: var(--accent-blue);
+    font-size: 0.82rem;
+    cursor: pointer;
+    padding: 8px 0 0;
+    transition: color 0.2s;
+    font-family: inherit;
+    display: block;
+    width: 100%;
+    text-align: center;
+    opacity: 0.8;
+}
+.forgot-pwd-link:hover { color: var(--accent-purple); opacity: 1; text-decoration: underline; }
+
+.forgot-pwd-modal { max-width: 420px; }
+.forgot-pwd-body { padding: 0 24px 24px; }
+.forgot-pwd-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    line-height: 1.6;
+}
+.forgot-pwd-error {
+    color: var(--accent-red);
+    font-size: 0.8rem;
+    margin-top: 8px;
+    min-height: 20px;
+}
+.forgot-pwd-success {
+    color: var(--accent-green);
+    font-size: 0.8rem;
+    margin-top: 8px;
+    min-height: 20px;
+}
+.forgot-pwd-send {
+    width: 100%;
+    margin-top: 12px;
+}
+
+/* ===== OTP VERIFICATION ===== */
+.otp-modal {
+    max-width: 440px;
+    text-align: center;
+}
+.otp-header {
+    padding: 28px 24px 0;
+}
+.otp-icon {
+    font-size: 3rem;
+    margin-bottom: 8px;
+    animation: otpBounce 2s ease-in-out infinite;
+}
+@keyframes otpBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+.otp-header h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.otp-desc {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+.otp-desc strong {
+    color: var(--accent-blue);
+}
+.otp-body {
+    padding: 20px 24px 28px;
+}
+.otp-inputs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.otp-digit {
+    width: 52px;
+    height: 60px;
+    background: rgba(255,255,255,0.04);
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-align: center;
+    font-family: 'Inter', monospace;
+    outline: none;
+    transition: all 0.25s ease;
+    caret-color: var(--accent-blue);
+}
+.otp-digit:focus {
+    border-color: var(--accent-blue);
+    background: rgba(79,195,247,0.06);
+    box-shadow: 0 0 16px rgba(79,195,247,0.2), inset 0 0 8px rgba(79,195,247,0.05);
+    transform: translateY(-2px);
+}
+.otp-digit.filled {
+    border-color: var(--accent-green);
+    background: rgba(105,240,174,0.08);
+}
+.otp-digit.error {
+    border-color: var(--accent-red);
+    background: rgba(255,82,82,0.08);
+    animation: otpShake 0.4s ease;
+}
+@keyframes otpShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    50% { transform: translateX(6px); }
+    75% { transform: translateX(-4px); }
+}
+.otp-error {
+    color: var(--accent-red);
+    font-size: 0.8rem;
+    min-height: 20px;
+    margin-bottom: 4px;
+}
+.otp-timer {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+.otp-timer span {
+    color: var(--accent-orange);
+    font-weight: 700;
+    font-family: 'Inter', monospace;
+}
+.otp-verify-btn {
+    width: 100%;
+    font-size: 1rem;
+    padding: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.otp-resend-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 10px 0 0;
+    transition: color 0.2s;
+    font-family: inherit;
+}
+.otp-resend-btn:not(:disabled):hover { color: var(--accent-blue); text-decoration: underline; }
+.otp-resend-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== CHANGE PASSWORD ===== */
+.change-pwd-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 4px;
+    border-radius: 50%;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+}
+.change-pwd-btn:hover { opacity: 1; background: rgba(255,255,255,0.1); }
+
+.change-pwd-modal { max-width: 440px; }
+.change-pwd-body { padding: 0 24px 24px; }
+.change-pwd-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    text-align: center;
+}
+.method-btn {
+    width: 100%;
+    padding: 14px 20px;
+    margin-bottom: 10px;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: inherit;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+}
+.method-btn:first-of-type {
+    background: rgba(79,195,247,0.08);
+    border: 1px solid rgba(79,195,247,0.2);
+    color: var(--accent-blue);
+}
+.method-btn:first-of-type:hover {
+    background: rgba(79,195,247,0.15);
+    border-color: var(--accent-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(79,195,247,0.2);
+}
+.method-btn:last-of-type {
+    background: rgba(179,136,255,0.08);
+    border: 1px solid rgba(179,136,255,0.2);
+    color: var(--accent-purple);
+}
+.method-btn:last-of-type:hover {
+    background: rgba(179,136,255,0.15);
+    border-color: var(--accent-purple);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(179,136,255,0.2);
+}
+.change-pwd-field {
+    margin-bottom: 14px;
+}
+.change-pwd-field .edit-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.change-pwd-error {
+    color: var(--accent-red);
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    min-height: 20px;
+}
+.change-pwd-success {
+    color: var(--accent-green);
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+    min-height: 20px;
+}
+
+/* OTP input responsive */
+@media (max-width: 480px) {
+    .otp-digit { width: 44px; height: 52px; font-size: 1.3rem; }
+    .otp-inputs { gap: 6px; }
+}

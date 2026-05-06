@@ -47,6 +47,62 @@ const FirebaseApp = {
         return this.auth.signOut();
     },
 
+    // === PASSWORD RESET ===
+    async resetPassword(email) {
+        return this.auth.sendPasswordResetEmail(email);
+    },
+
+    // === CHANGE PASSWORD (requires re-auth) ===
+    async changePassword(currentPassword, newPassword) {
+        const user = this.auth.currentUser;
+        if (!user || !user.email) throw new Error('Không tìm thấy user');
+        const cred = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+        await user.reauthenticateWithCredential(cred);
+        return user.updatePassword(newPassword);
+    },
+
+    // === EMAIL VERIFICATION ===
+    async sendVerification() {
+        const user = this.auth.currentUser;
+        if (user) return user.sendEmailVerification();
+    },
+
+    // === OTP MANAGEMENT ===
+    generateOTP() {
+        return String(Math.floor(10000 + Math.random() * 90000)); // 5-digit
+    },
+
+    async saveOTP(email, otp) {
+        if (!this.db) return;
+        const key = btoa(email).replace(/[.#$/\[\]]/g, '_');
+        return this.db.ref(`otp_verification/${key}`).set({
+            code: otp,
+            email: email,
+            createdAt: Date.now(),
+            expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
+            verified: false
+        });
+    },
+
+    async verifyOTP(email, code) {
+        if (!this.db) return false;
+        const key = btoa(email).replace(/[.#$/\[\]]/g, '_');
+        const snap = await this.db.ref(`otp_verification/${key}`).once('value');
+        const data = snap.val();
+        if (!data) return { success: false, error: 'Không tìm thấy mã OTP' };
+        if (Date.now() > data.expiresAt) return { success: false, error: 'Mã OTP đã hết hạn' };
+        if (data.code !== code) return { success: false, error: 'Mã OTP không đúng' };
+        // Mark as verified
+        await this.db.ref(`otp_verification/${key}/verified`).set(true);
+        return { success: true };
+    },
+
+    async deleteOTP(email) {
+        if (!this.db) return;
+        const key = btoa(email).replace(/[.#$/\[\]]/g, '_');
+        return this.db.ref(`otp_verification/${key}`).remove();
+    },
+
     // === DATABASE ===
     _p(path) { return `users/${this.user.uid}/${path}`; },
 

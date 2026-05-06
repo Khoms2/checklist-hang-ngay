@@ -1222,6 +1222,251 @@ function copyShareURL() {
     }).catch(() => prompt('Copy link này:', url));
 }
 
+// ===== OTP SYSTEM =====
+let _otpTimerInterval = null;
+let _otpResendInterval = null;
+let _pendingOtpEmail = null;
+let _pendingOtpPassword = null;
+let _otpPurpose = 'register'; // 'register' or 'changepwd'
+
+function startOtpFlow(email, password, purpose) {
+    _pendingOtpEmail = email;
+    _pendingOtpPassword = password;
+    _otpPurpose = purpose || 'register';
+    
+    const otp = FirebaseApp.generateOTP();
+    FirebaseApp.saveOTP(email, otp);
+    
+    // Show OTP modal
+    document.getElementById('otpTargetEmail').textContent = email;
+    document.getElementById('otpError').textContent = '';
+    document.getElementById('otpModal').classList.add('show');
+    
+    // Clear OTP inputs
+    document.querySelectorAll('.otp-digit').forEach(d => {
+        d.value = '';
+        d.classList.remove('filled', 'error');
+    });
+    document.querySelector('.otp-digit[data-otp-index="0"]')?.focus();
+    
+    // Start 5-minute countdown
+    startOtpCountdown(5 * 60);
+    // Start 60s resend cooldown
+    startResendCooldown(60);
+    
+    // Show OTP as toast for demo/testing (in production, send via email service)
+    FirebaseApp.toast(`Mã OTP: ${otp} (kiểm tra email)`);
+    console.log(`[OTP] Code for ${email}: ${otp}`);
+}
+
+function startOtpCountdown(seconds) {
+    clearInterval(_otpTimerInterval);
+    let remaining = seconds;
+    const countdownEl = document.getElementById('otpCountdown');
+    
+    const update = () => {
+        const m = Math.floor(remaining / 60);
+        const s = remaining % 60;
+        countdownEl.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        if (remaining <= 0) {
+            clearInterval(_otpTimerInterval);
+            countdownEl.textContent = 'Hết hạn!';
+            countdownEl.style.color = 'var(--accent-red)';
+        }
+        remaining--;
+    };
+    update();
+    _otpTimerInterval = setInterval(update, 1000);
+}
+
+function startResendCooldown(seconds) {
+    clearInterval(_otpResendInterval);
+    const resendBtn = document.getElementById('otpResendBtn');
+    const resendTimer = document.getElementById('otpResendTimer');
+    let remaining = seconds;
+    resendBtn.disabled = true;
+    
+    const update = () => {
+        resendTimer.textContent = remaining;
+        if (remaining <= 0) {
+            clearInterval(_otpResendInterval);
+            resendBtn.disabled = false;
+            resendBtn.innerHTML = 'Gửi lại mã';
+        } else {
+            resendBtn.innerHTML = `Gửi lại mã (<span id="otpResendTimer">${remaining}</span>s)`;
+        }
+        remaining--;
+    };
+    update();
+    _otpResendInterval = setInterval(update, 1000);
+}
+
+async function verifyOtpAndComplete() {
+    const digits = document.querySelectorAll('.otp-digit');
+    const code = Array.from(digits).map(d => d.value).join('');
+    const errorEl = document.getElementById('otpError');
+    
+    if (code.length !== 5) {
+        errorEl.textContent = 'Vui lòng nhập đủ 5 số';
+        digits.forEach(d => d.classList.add('error'));
+        setTimeout(() => digits.forEach(d => d.classList.remove('error')), 500);
+        return;
+    }
+    
+    const result = await FirebaseApp.verifyOTP(_pendingOtpEmail, code);
+    if (!result.success) {
+        errorEl.textContent = result.error;
+        digits.forEach(d => d.classList.add('error'));
+        setTimeout(() => digits.forEach(d => d.classList.remove('error')), 500);
+        return;
+    }
+    
+    // OTP verified!
+    clearInterval(_otpTimerInterval);
+    clearInterval(_otpResendInterval);
+    document.getElementById('otpModal').classList.remove('show');
+    FirebaseApp.deleteOTP(_pendingOtpEmail);
+    
+    if (_otpPurpose === 'register') {
+        // Complete registration
+        try {
+            await FirebaseApp.registerEmail(_pendingOtpEmail, _pendingOtpPassword);
+            await uploadLocalToFirebase();
+            FirebaseApp.toast('Đăng ký thành công! Chào mừng bạn! 🎉');
+        } catch (e) {
+            showError(e.code === 'auth/email-already-in-use' ? 'Email đã được sử dụng' : e.message);
+        }
+    } else if (_otpPurpose === 'changepwd') {
+        // Show change password form (already verified via OTP)
+        document.getElementById('changePwdMethod').style.display = 'none';
+        document.getElementById('changePwdForm').style.display = 'block';
+        document.getElementById('currentPwdField').style.display = 'none';
+        window._changePwdViaOTP = true;
+        document.getElementById('newPwd').focus();
+        FirebaseApp.toast('Xác thực OTP thành công ✓');
+    }
+    
+    _pendingOtpEmail = null;
+    _pendingOtpPassword = null;
+}
+
+function setupOtpInputHandlers() {
+    const inputs = document.querySelectorAll('.otp-digit');
+    inputs.forEach((input, i) => {
+        input.addEventListener('input', e => {
+            const val = e.target.value.replace(/[^0-9]/g, '');
+            e.target.value = val;
+            if (val) {
+                e.target.classList.add('filled');
+                e.target.classList.remove('error');
+                // Auto-focus next
+                if (i < inputs.length - 1) inputs[i + 1].focus();
+            } else {
+                e.target.classList.remove('filled');
+            }
+        });
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Backspace' && !e.target.value && i > 0) {
+                inputs[i - 1].focus();
+                inputs[i - 1].value = '';
+                inputs[i - 1].classList.remove('filled');
+            }
+            if (e.key === 'Enter') verifyOtpAndComplete();
+        });
+        // Handle paste - auto-fill all 5 digits
+        input.addEventListener('paste', e => {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+            if (paste.length >= 5) {
+                inputs.forEach((inp, idx) => {
+                    inp.value = paste[idx] || '';
+                    inp.classList.toggle('filled', !!paste[idx]);
+                });
+                inputs[4].focus();
+            }
+        });
+    });
+}
+
+// ===== FORGOT PASSWORD =====
+async function sendPasswordReset() {
+    const email = document.getElementById('forgotPwdEmail').value.trim();
+    const errorEl = document.getElementById('forgotPwdError');
+    const successEl = document.getElementById('forgotPwdSuccess');
+    errorEl.textContent = '';
+    successEl.textContent = '';
+    
+    if (!email) { errorEl.textContent = 'Vui lòng nhập email'; return; }
+    if (!email.includes('@')) { errorEl.textContent = 'Email không hợp lệ'; return; }
+    
+    try {
+        await FirebaseApp.resetPassword(email);
+        successEl.textContent = '✅ Đã gửi email đặt lại mật khẩu! Vui lòng kiểm tra hộp thư (kể cả Spam).';
+        document.getElementById('forgotPwdSend').textContent = '✓ Đã gửi';
+        setTimeout(() => {
+            document.getElementById('forgotPwdSend').textContent = '📧 Gửi email đặt lại';
+        }, 3000);
+    } catch (e) {
+        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-email') {
+            errorEl.textContent = 'Email không tồn tại trong hệ thống';
+        } else {
+            errorEl.textContent = e.message;
+        }
+    }
+}
+
+// ===== CHANGE PASSWORD =====
+async function executeChangePassword() {
+    const newPwd = document.getElementById('newPwd').value;
+    const confirmPwd = document.getElementById('confirmNewPwd').value;
+    const errorEl = document.getElementById('changePwdError');
+    const successEl = document.getElementById('changePwdSuccess');
+    errorEl.textContent = '';
+    successEl.textContent = '';
+    
+    if (!newPwd || newPwd.length < 6) { errorEl.textContent = 'Mật khẩu mới phải ít nhất 6 ký tự'; return; }
+    if (newPwd !== confirmPwd) { errorEl.textContent = 'Mật khẩu xác nhận không khớp'; return; }
+    
+    try {
+        if (window._changePwdViaOTP) {
+            // OTP-verified: just update password directly
+            const user = FirebaseApp.auth.currentUser;
+            await user.updatePassword(newPwd);
+        } else {
+            // Re-auth with current password
+            const currentPwd = document.getElementById('currentPwd').value;
+            if (!currentPwd) { errorEl.textContent = 'Vui lòng nhập mật khẩu hiện tại'; return; }
+            await FirebaseApp.changePassword(currentPwd, newPwd);
+        }
+        successEl.textContent = '✅ Đổi mật khẩu thành công!';
+        FirebaseApp.toast('Đổi mật khẩu thành công ✓');
+        setTimeout(() => {
+            document.getElementById('changePwdModal').classList.remove('show');
+            resetChangePwdModal();
+        }, 1500);
+    } catch (e) {
+        if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+            errorEl.textContent = 'Mật khẩu hiện tại không đúng';
+        } else if (e.code === 'auth/requires-recent-login') {
+            errorEl.textContent = 'Phiên đăng nhập đã cũ. Vui lòng đăng xuất và đăng nhập lại.';
+        } else {
+            errorEl.textContent = e.message;
+        }
+    }
+}
+
+function resetChangePwdModal() {
+    document.getElementById('changePwdMethod').style.display = '';
+    document.getElementById('changePwdForm').style.display = 'none';
+    document.getElementById('currentPwd').value = '';
+    document.getElementById('newPwd').value = '';
+    document.getElementById('confirmNewPwd').value = '';
+    document.getElementById('changePwdError').textContent = '';
+    document.getElementById('changePwdSuccess').textContent = '';
+    document.getElementById('currentPwdField').style.display = '';
+    window._changePwdViaOTP = false;
+}
+
 // ===== INIT =====
 function init() {
     // Check URL import
@@ -1288,11 +1533,9 @@ function init() {
         const pass = document.getElementById('loginPassword').value;
         if (!email || !pass) { showError('Vui lòng nhập email và mật khẩu'); return; }
         if (pass.length < 6) { showError('Mật khẩu phải ít nhất 6 ký tự'); return; }
-        try {
-            await FirebaseApp.registerEmail(email, pass);
-            await uploadLocalToFirebase();
-            FirebaseApp.toast('Đăng ký thành công ✓');
-        } catch (e) { showError(e.code === 'auth/email-already-in-use' ? 'Email đã được sử dụng' : e.message); }
+        if (!email.includes('@')) { showError('Email không hợp lệ'); return; }
+        // Start OTP verification before creating account
+        startOtpFlow(email, pass, 'register');
     });
     document.getElementById('logoutBtn')?.addEventListener('click', async () => {
         await FirebaseApp.logout();
@@ -1481,6 +1724,76 @@ function init() {
         if (opt) copyGroupsFrom(opt.dataset.copySource);
     });
 
+    // === Forgot Password ===
+    document.getElementById('forgotPwdLink')?.addEventListener('click', () => {
+        document.getElementById('forgotPwdEmail').value = document.getElementById('loginEmail').value || '';
+        document.getElementById('forgotPwdError').textContent = '';
+        document.getElementById('forgotPwdSuccess').textContent = '';
+        document.getElementById('forgotPwdModal').classList.add('show');
+    });
+    document.getElementById('forgotPwdClose')?.addEventListener('click', () => document.getElementById('forgotPwdModal').classList.remove('show'));
+    document.getElementById('forgotPwdModal')?.addEventListener('click', e => { if (e.target.id === 'forgotPwdModal') e.target.classList.remove('show'); });
+    document.getElementById('forgotPwdSend')?.addEventListener('click', sendPasswordReset);
+    document.getElementById('forgotPwdEmail')?.addEventListener('keydown', e => { if (e.key === 'Enter') sendPasswordReset(); });
+
+    // === OTP Verification ===
+    setupOtpInputHandlers();
+    document.getElementById('otpVerifyBtn')?.addEventListener('click', verifyOtpAndComplete);
+    document.getElementById('otpResendBtn')?.addEventListener('click', () => {
+        if (_pendingOtpEmail) {
+            const otp = FirebaseApp.generateOTP();
+            FirebaseApp.saveOTP(_pendingOtpEmail, otp);
+            startOtpCountdown(5 * 60);
+            startResendCooldown(60);
+            document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled', 'error'); });
+            document.querySelector('.otp-digit[data-otp-index="0"]')?.focus();
+            document.getElementById('otpError').textContent = '';
+            FirebaseApp.toast(`Mã OTP mới: ${otp} (kiểm tra email)`);
+            console.log(`[OTP] New code for ${_pendingOtpEmail}: ${otp}`);
+        }
+    });
+    // Prevent closing OTP modal by clicking overlay (force user to verify or cancel)
+    document.getElementById('otpModal')?.addEventListener('click', e => {
+        if (e.target.id === 'otpModal') {
+            // Allow closing for now - user can re-register
+            e.target.classList.remove('show');
+            clearInterval(_otpTimerInterval);
+            clearInterval(_otpResendInterval);
+        }
+    });
+
+    // === Change Password ===
+    document.getElementById('changePwdBtn')?.addEventListener('click', () => {
+        resetChangePwdModal();
+        const user = FirebaseApp.auth?.currentUser;
+        // Hide OTP method for Google-only users (no password)
+        const hasPassword = user?.providerData?.some(p => p.providerId === 'password');
+        document.getElementById('methodCurrentPwd').style.display = hasPassword ? '' : 'none';
+        document.getElementById('changePwdModal').classList.add('show');
+    });
+    document.getElementById('changePwdClose')?.addEventListener('click', () => {
+        document.getElementById('changePwdModal').classList.remove('show');
+        resetChangePwdModal();
+    });
+    document.getElementById('changePwdModal')?.addEventListener('click', e => {
+        if (e.target.id === 'changePwdModal') { e.target.classList.remove('show'); resetChangePwdModal(); }
+    });
+    document.getElementById('methodEmail')?.addEventListener('click', () => {
+        const user = FirebaseApp.auth?.currentUser;
+        if (user?.email) {
+            startOtpFlow(user.email, null, 'changepwd');
+        }
+    });
+    document.getElementById('methodCurrentPwd')?.addEventListener('click', () => {
+        document.getElementById('changePwdMethod').style.display = 'none';
+        document.getElementById('changePwdForm').style.display = 'block';
+        document.getElementById('currentPwdField').style.display = '';
+        window._changePwdViaOTP = false;
+        document.getElementById('currentPwd').focus();
+    });
+    document.getElementById('changePwdSave')?.addEventListener('click', executeChangePassword);
+    document.getElementById('confirmNewPwd')?.addEventListener('keydown', e => { if (e.key === 'Enter') executeChangePassword(); });
+
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') {
             document.getElementById('notesModal').classList.remove('show');
@@ -1491,6 +1804,9 @@ function init() {
             document.getElementById('resetConfirmModal')?.classList.remove('show');
             document.getElementById('addGroupModal')?.classList.remove('show');
             document.getElementById('copyGroupsModal')?.classList.remove('show');
+            document.getElementById('forgotPwdModal')?.classList.remove('show');
+            document.getElementById('changePwdModal')?.classList.remove('show');
+            // Don't auto-close OTP modal on Escape
         }
     });
 

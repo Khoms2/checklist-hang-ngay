@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "checklist-vdt-2026"
+  },
+  "targets": {
+    "checklist-vdt-2026": {
+      "hosting": {
+        "dailychecklist-k": [
+          "dailychecklist-k"
+        ]
+      }
+    }
+  }
+}
