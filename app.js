@@ -423,6 +423,19 @@ function updateProgress() {
 
     // Only show celebration when the user just actively toggled the last item
     if (pct === 100 && done > 0 && dayOffset === 0 && window._justToggledItem) {
+        const quotes = [
+            { t: "Tuyệt vời!", m: "Bạn đã hoàn thành tất cả nhiệm vụ hôm nay!" },
+            { t: "Xuất sắc!", m: "Kỷ luật là sức mạnh! Bạn đã làm rất tốt!" },
+            { t: "Hoàn hảo!", m: "Thêm một ngày tuyệt vời nữa đã được chinh phục!" },
+            { t: "100% Rực rỡ!", m: "Bạn thật sự rất kiên trì! Nghỉ ngơi thôi nào!" },
+            { t: "Wow!", m: "Mục tiêu đã xong! Phần thưởng là một buổi tối thư giãn!" },
+            { t: "Đỉnh cao!", m: "Bạn đang trên con đường trở thành phiên bản tốt nhất!" }
+        ];
+        const q = quotes[Math.floor(Math.random() * quotes.length)];
+        const titleEl = document.getElementById('celebrationTitle');
+        const msgEl = document.getElementById('celebrationMsg');
+        if (titleEl) titleEl.textContent = q.t;
+        if (msgEl) msgEl.textContent = q.m;
         document.getElementById('celebrationOverlay').classList.add('show');
     }
     // Reset the flag after check
