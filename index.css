@@ -137,7 +137,8 @@ body::before {
 .dashboard-toolbar {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
+    row-gap: 12px;
     flex-wrap: wrap;
     justify-content: flex-end;
 }
@@ -2111,7 +2112,31 @@ body::before {
     letter-spacing: 0.5px;
 }
 
-/* Redundant Mood Tracker Removed */
+/* ===== MOOD TRACKER ===== */
+.mood-tracker {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.04);
+    padding: 4px 10px;
+    border-radius: 40px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.mood-options {
+    display: flex;
+    gap: 4px;
+}
+
+.mood-btn {
+    font-size: 1.15rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 3px;
+    border-radius: 50%;
+    transition: var(--transition);
+    filter: grayscale(1) opacity(0.4);
+}
 
 /* ===== CHAR COUNTER ===== */
 .char-count {
