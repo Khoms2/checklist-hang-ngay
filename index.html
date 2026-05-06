@@ -386,7 +386,7 @@
         </div>
     </div>
 
-    <!-- Forgot Password Modal -->
+    <!-- Forgot Password Modal (OTP-based) -->
     <div class="modal-overlay" id="forgotPwdModal">
         <div class="modal-content forgot-pwd-modal">
             <div class="modal-header">
@@ -394,11 +394,22 @@
                 <button class="modal-close" id="forgotPwdClose">✕</button>
             </div>
             <div class="forgot-pwd-body">
-                <p class="forgot-pwd-desc">Nhập email đăng ký của bạn. Chúng tôi sẽ gửi link đặt lại mật khẩu.</p>
-                <input type="email" class="login-input" id="forgotPwdEmail" placeholder="Email đăng ký">
+                <p class="forgot-pwd-desc">Nhập email đăng ký và mật khẩu mới. Chúng tôi sẽ gửi mã OTP 5 số đến email để xác thực.</p>
+                <div class="change-pwd-field">
+                    <label class="edit-label">Email đăng ký</label>
+                    <input type="email" class="login-input" id="forgotPwdEmail" placeholder="Nhập email đã đăng ký">
+                </div>
+                <div class="change-pwd-field">
+                    <label class="edit-label">Mật khẩu mới</label>
+                    <input type="password" class="login-input" id="forgotNewPwd" placeholder="Mật khẩu mới (≥ 6 ký tự)">
+                </div>
+                <div class="change-pwd-field">
+                    <label class="edit-label">Xác nhận mật khẩu mới</label>
+                    <input type="password" class="login-input" id="forgotConfirmPwd" placeholder="Nhập lại mật khẩu mới">
+                </div>
                 <div class="forgot-pwd-error" id="forgotPwdError"></div>
                 <div class="forgot-pwd-success" id="forgotPwdSuccess"></div>
-                <button class="modal-btn save forgot-pwd-send" id="forgotPwdSend">📧 Gửi email đặt lại</button>
+                <button class="modal-btn save forgot-pwd-send" id="forgotPwdSend">🔐 Gửi OTP xác thực</button>
             </div>
         </div>
     </div>

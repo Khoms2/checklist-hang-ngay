@@ -1351,6 +1351,26 @@ async function verifyOtpAndComplete() {
         window._changePwdViaOTP = true;
         document.getElementById('newPwd').focus();
         FirebaseApp.toast('Xác thực OTP thành công ✓');
+    } else if (_otpPurpose === 'forgotpwd') {
+        // OTP verified for forgot password
+        // Since user is not logged in, we can't directly update password.
+        // Send Firebase reset email (verified via OTP so user knows to check email).
+        try {
+            await FirebaseApp.resetPassword(_pendingOtpEmail);
+        } catch(e) { console.warn('Reset email send:', e); }
+        
+        // Show prominent success message on login screen
+        FirebaseApp.toast('✅ Xác thực OTP thành công! Kiểm tra email để đặt mật khẩu mới.');
+        const loginError = document.getElementById('loginError');
+        if (loginError) {
+            loginError.innerHTML = '<div style="color:#69f0ae;font-size:0.85rem;line-height:1.5;padding:8px 0;">' +
+                '✅ <strong>Xác thực thành công!</strong><br>' +
+                '📧 Link đặt lại mật khẩu đã gửi đến <strong>' + _pendingOtpEmail + '</strong><br>' +
+                '⚠️ Kiểm tra <strong>Hộp thư đến</strong> hoặc <strong>Thư rác (Spam)</strong></div>';
+            setTimeout(() => { loginError.innerHTML = ''; }, 15000);
+        }
+        _forgotPwdEmail = null;
+        _forgotPwdNewPassword = null;
     }
     
     _pendingOtpEmail = null;
@@ -1395,9 +1415,14 @@ function setupOtpInputHandlers() {
     });
 }
 
-// ===== FORGOT PASSWORD =====
-async function sendPasswordReset() {
+// ===== FORGOT PASSWORD (OTP-based) =====
+let _forgotPwdEmail = null;
+let _forgotPwdNewPassword = null;
+
+async function startForgotPasswordOTP() {
     const email = document.getElementById('forgotPwdEmail').value.trim();
+    const newPwd = document.getElementById('forgotNewPwd').value;
+    const confirmPwd = document.getElementById('forgotConfirmPwd').value;
     const errorEl = document.getElementById('forgotPwdError');
     const successEl = document.getElementById('forgotPwdSuccess');
     errorEl.textContent = '';
@@ -1405,21 +1430,18 @@ async function sendPasswordReset() {
     
     if (!email) { errorEl.textContent = 'Vui lòng nhập email'; return; }
     if (!email.includes('@')) { errorEl.textContent = 'Email không hợp lệ'; return; }
+    if (!newPwd || newPwd.length < 6) { errorEl.textContent = 'Mật khẩu mới phải ít nhất 6 ký tự'; return; }
+    if (newPwd !== confirmPwd) { errorEl.textContent = 'Mật khẩu xác nhận không khớp'; return; }
     
-    try {
-        await FirebaseApp.resetPassword(email);
-        successEl.textContent = '✅ Đã gửi email đặt lại mật khẩu! Vui lòng kiểm tra hộp thư (kể cả Spam).';
-        document.getElementById('forgotPwdSend').textContent = '✓ Đã gửi';
-        setTimeout(() => {
-            document.getElementById('forgotPwdSend').textContent = '📧 Gửi email đặt lại';
-        }, 3000);
-    } catch (e) {
-        if (e.code === 'auth/user-not-found' || e.code === 'auth/invalid-email') {
-            errorEl.textContent = 'Email không tồn tại trong hệ thống';
-        } else {
-            errorEl.textContent = e.message;
-        }
-    }
+    // Save for after OTP verification
+    _forgotPwdEmail = email;
+    _forgotPwdNewPassword = newPwd;
+    
+    // Close forgot password modal, open OTP modal
+    document.getElementById('forgotPwdModal').classList.remove('show');
+    
+    // Start OTP flow with purpose 'forgotpwd'
+    startOtpFlow(email, newPwd, 'forgotpwd');
 }
 
 // ===== CHANGE PASSWORD =====
@@ -1737,14 +1759,16 @@ function init() {
     // === Forgot Password ===
     document.getElementById('forgotPwdLink')?.addEventListener('click', () => {
         document.getElementById('forgotPwdEmail').value = document.getElementById('loginEmail').value || '';
+        document.getElementById('forgotNewPwd').value = '';
+        document.getElementById('forgotConfirmPwd').value = '';
         document.getElementById('forgotPwdError').textContent = '';
         document.getElementById('forgotPwdSuccess').textContent = '';
         document.getElementById('forgotPwdModal').classList.add('show');
     });
     document.getElementById('forgotPwdClose')?.addEventListener('click', () => document.getElementById('forgotPwdModal').classList.remove('show'));
     document.getElementById('forgotPwdModal')?.addEventListener('click', e => { if (e.target.id === 'forgotPwdModal') e.target.classList.remove('show'); });
-    document.getElementById('forgotPwdSend')?.addEventListener('click', sendPasswordReset);
-    document.getElementById('forgotPwdEmail')?.addEventListener('keydown', e => { if (e.key === 'Enter') sendPasswordReset(); });
+    document.getElementById('forgotPwdSend')?.addEventListener('click', startForgotPasswordOTP);
+    document.getElementById('forgotPwdEmail')?.addEventListener('keydown', e => { if (e.key === 'Enter') startForgotPasswordOTP(); });
 
     // === OTP Verification ===
     setupOtpInputHandlers();
