@@ -136,6 +136,7 @@ const AVAILABLE_ICONS = [
 // Use dayOffset (integer) to avoid ALL timezone bugs: 0=today, -1=yesterday, +1=tomorrow
 let dayOffset = 0;
 let collapsedSections = {};
+let creationDate = null; // ISO date string YYYY-MM-DD
 window._isRemoteUpdate = false;
 window._localActionInProgress = false;
 
@@ -446,11 +447,21 @@ function updateProgress() {
 function updateDateDisplay() {
     const label = document.getElementById('dateLabel');
     const value = document.getElementById('dateValue');
+    const prevBtn = document.getElementById('prevDay');
+    
     if (dayOffset === 0) label.textContent = 'Hôm nay';
     else if (dayOffset === -1) label.textContent = 'Hôm qua';
     else if (dayOffset === 1) label.textContent = 'Ngày mai';
     else label.textContent = dayOffset > 0 ? `+${dayOffset} ngày sau` : `${Math.abs(dayOffset)} ngày trước`;
+    
     value.textContent = formatDate();
+
+    // Disable prev button if at creation limit
+    if (creationDate && dateKey(dayOffset - 1) < creationDate) {
+        prevBtn?.classList.add('disabled');
+    } else {
+        prevBtn?.classList.remove('disabled');
+    }
 }
 
 // Animate the date display with a pop effect when navigating days
@@ -1058,10 +1069,20 @@ async function loadFromFirebase() {
     }
     if (data.meta) {
         Object.entries(data.meta).forEach(([k,v]) => {
-            if (['bestStreak','totalCompletedDays'].includes(k)) ss(k, v);
+            if (['bestStreak','totalCompletedDays','creationDate'].includes(k)) {
+                ss(k, v);
+                if (k === 'creationDate') creationDate = v;
+            }
             else if (k.startsWith('completed_') || k.startsWith('celebrated_')) ss(k, v);
         });
     }
+    // Handle new users: set creationDate if missing
+    if (!creationDate) {
+        creationDate = dateKey(0);
+        ss('creationDate', creationDate);
+        FirebaseApp.save('meta/creationDate', creationDate);
+    }
+
     renderSections(); updateStreak();
     window._isRemoteUpdate = false;
 }
@@ -1303,7 +1324,14 @@ function init() {
         if (e.key === 'Escape' && e.target.classList.contains('add-task-input')) hideAddInput(e.target.dataset.inputSection);
     });
 
-    document.getElementById('prevDay').addEventListener('click', () => { dayOffset--; animateDateChange(); });
+    document.getElementById('prevDay').addEventListener('click', () => { 
+        if (creationDate && dateKey(dayOffset - 1) < creationDate) {
+            FirebaseApp.toast('Bạn không thể quay lại trước ngày bắt đầu sử dụng!');
+            return;
+        }
+        dayOffset--; 
+        animateDateChange(); 
+    });
     document.getElementById('nextDay').addEventListener('click', () => { dayOffset++; animateDateChange(); });
 
     document.getElementById('resetBtn').addEventListener('click', (e) => {
