@@ -376,9 +376,9 @@ body::before {
 .section-header-top {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 14px 20px 10px;
-    gap: 12px;
+    align-items: flex-start; /* Align to top to handle multi-line titles better */
+    padding: 16px 20px 12px;
+    gap: 16px;
 }
 
 /* Group Progress Bar (Seamless Integration) */
@@ -407,8 +407,18 @@ body::before {
 
 .section-header:hover { background: rgba(255,255,255,0.02); }
 
-.section-title-group { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
-.section-title-group > div { min-width: 0; }
+.section-title-group { 
+    display: flex; 
+    align-items: flex-start; 
+    gap: 12px; 
+    flex: 1; 
+    min-width: 0; 
+    overflow: hidden;
+}
+.section-title-group > div { 
+    flex: 1; 
+    min-width: 0; 
+}
 
 .section-icon {
     font-size: 1.3rem;
@@ -436,7 +446,13 @@ body::before {
     margin-top: 2px;
 }
 
-.section-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.section-meta { 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+    flex-shrink: 0;
+    margin-left: auto;
+}
 
 /* Edit/Delete buttons — hidden until hover */
 .section-edit-btn {
