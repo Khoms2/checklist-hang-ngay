@@ -101,11 +101,10 @@ function ensureDaySections() {
         return copy;
     }
 
-    // Default initialization: Use DEFAULT_SECTIONS for first-time setup
-    const defaults = JSON.parse(JSON.stringify(DEFAULT_SECTIONS));
-    saveDaySections(defaults, dk);
+    // Default initialization: Start empty for new users to create their own
+    saveDaySections([], dk);
     ss(`_hidden_sections_${dk}`, []);
-    return defaults;
+    return [];
 }
 function getActiveSections() {
     const hiddenIds = getHiddenSectionIds();
@@ -140,6 +139,15 @@ let creationDate = null; // ISO date string YYYY-MM-DD
 window._isReadOnly = false;
 window._isRemoteUpdate = false;
 window._localActionInProgress = false;
+
+const EMPTY_STATE_HTML = `
+    <div class="empty-state-container">
+        <div class="empty-state-icon">🚀</div>
+        <h2>Chào mừng bạn đến với Daily Checklist!</h2>
+        <p>Bắt đầu hành trình kỷ luật bằng cách tạo nhóm nhiệm vụ đầu tiên của riêng bạn.</p>
+        <button class="empty-state-btn" onclick="openAddGroupModal()">＋ Tạo nhóm đầu tiên</button>
+    </div>
+`;
 
 // ===== DATE from offset (pure, no timezone issues) =====
 function getDateFromOffset(offset) {
@@ -303,6 +311,12 @@ function buildSectionElement(section, cl, notes) {
 
 function renderSections() {
     const main = document.getElementById('checklistMain');
+    const visibleSections = getVisibleSections();
+    if (visibleSections.length === 0) {
+        main.innerHTML = EMPTY_STATE_HTML;
+        updateProgress();
+        return;
+    }
     const cl = getChecklist(), notes = getNotes();
     main.innerHTML = '';
 
