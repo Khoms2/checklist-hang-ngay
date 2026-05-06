@@ -23,7 +23,20 @@
             <div class="header-content">
                 <div class="header-left">
                     <h1 class="app-title">
-                        <span class="title-icon">✅</span>
+                        <div class="logo-3d-container">
+                            <div class="logo-3d">
+                                <div class="cube">
+                                    <div class="face front">
+                                        <div class="check-mark"></div>
+                                    </div>
+                                    <div class="face back"></div>
+                                    <div class="face right"></div>
+                                    <div class="face left"></div>
+                                    <div class="face top"></div>
+                                    <div class="face bottom"></div>
+                                </div>
+                            </div>
+                        </div>
                         <span>Daily Checklist</span>
                     </h1>
                     <p class="app-subtitle"> Mỗi ngày tiến bộ hơn </p>
@@ -57,31 +70,30 @@
                         </div>
 
                         <div class="header-actions">
-                            <button class="share-btn" id="copyShareURL" title="Chia sẻ dữ liệu qua link">🔗
-                                Share</button>
-                            <button class="reset-btn" id="resetBtn" title="Reset tất cả">🗑️ Reset</button>
+                            <button class="share-btn" id="copyShareURL" title="Chia sẻ dữ liệu qua link">🔗 SHARE</button>
+                            <button class="reset-btn" id="resetBtn" title="Xóa toàn bộ tiến độ hôm nay">🗑️ RESET</button>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Overall Progress -->
-            <div class="overall-progress">
-                <div class="progress-info">
-                    <span class="progress-label">Tiến độ hôm nay</span>
-                    <span class="progress-value" id="overallProgressValue">0%</span>
+            <!-- Global Progress Bar -->
+            <div class="overall-progress-container">
+                <div class="overall-progress-info">
+                    <span class="progress-title">Tiến độ hôm nay</span>
+                    <span class="progress-pct" id="overallProgressValue">0%</span>
                 </div>
-                <div class="progress-bar-track">
-                    <div class="progress-bar-fill" id="overallProgressBar"></div>
+                <div class="overall-progress-track">
+                    <div class="overall-progress-fill" id="overallProgressBar"></div>
                 </div>
-                <div class="progress-stats">
+                <div class="overall-progress-stats">
                     <span id="completedCount">0</span> / <span id="totalCount">0</span> nhiệm vụ
                 </div>
             </div>
         </header>
 
         <!-- Main Content -->
-        <main class="checklist-main" id="checklistMain">
-            <!-- Sections will be rendered by JS -->
+        <main id="checklistMain">
+            <!-- Sections will be rendered here surgically -->
         </main>
 
         <!-- Streak & Motivation -->
@@ -91,14 +103,14 @@
                     <span class="streak-icon">🔥</span>
                     <div class="streak-info">
                         <span class="streak-number" id="streakCount">0</span>
-                        <span class="streak-label">Ngày liên tiếp</span>
+                        <span class="streak-label">Chuỗi ngày (Streak)</span>
                     </div>
                 </div>
                 <div class="streak-card">
                     <span class="streak-icon">🏆</span>
                     <div class="streak-info">
                         <span class="streak-number" id="bestStreak">0</span>
-                        <span class="streak-label">Kỷ lục streak</span>
+                        <span class="streak-label">Kỷ lục cao nhất</span>
                     </div>
                 </div>
                 <div class="streak-card">
@@ -122,7 +134,7 @@
             <div class="motivation-quote" id="motivationQuote">
                 "Mỗi ngày đều là cơ hội để trở nên giỏi hơn!"
             </div>
-            <div class="version-badge" id="versionBadge">v3.5.0 · 06/05/2026</div>
+            <div class="version-badge" id="versionBadge">v3.5.1 · 06/05/2026</div>
         </footer>
     </div>
 
