@@ -137,6 +137,7 @@ const AVAILABLE_ICONS = [
 let dayOffset = 0;
 let collapsedSections = {};
 let creationDate = null; // ISO date string YYYY-MM-DD
+window._isReadOnly = false;
 window._isRemoteUpdate = false;
 window._localActionInProgress = false;
 
@@ -369,6 +370,7 @@ function renderSections() {
 
 // ===== SURGICAL TOGGLE (no re-render) =====
 function toggleItem(itemId) {
+    if (window._isReadOnly) { FirebaseApp.toast('Bạn đang ở chế độ CHỈ XEM 👁️'); return; }
     window._localActionInProgress = true;
     const cl = getChecklist();
     cl[itemId] = !cl[itemId];
@@ -543,6 +545,7 @@ function toggleSection(sid) {
 
 // ===== ADD CUSTOM TASK (inline input, no prompt) =====
 function showAddInput(sectionId) {
+    if (window._isReadOnly) return;
     const wrap = document.querySelector(`.add-task-input-wrap[data-add-section="${sectionId}"]`);
     const btn = wrap?.parentElement.querySelector('.add-task-btn');
     if (wrap) { wrap.style.display = 'flex'; }
@@ -559,6 +562,7 @@ function hideAddInput(sectionId) {
 }
 
 function confirmAddTask(sectionId) {
+    if (window._isReadOnly) return;
     const input = document.querySelector(`.add-task-input[data-input-section="${sectionId}"]`);
     let text = input?.value?.trim();
     if (!text) { hideAddInput(sectionId); return; }
@@ -573,6 +577,7 @@ function confirmAddTask(sectionId) {
 }
 
 function deleteTask(itemId, sectionId, isCustom) {
+    if (window._isReadOnly) return;
     const itemEl = document.querySelector(`.checklist-item[data-item="${itemId}"]`);
     if (itemEl) {
         itemEl.style.transition = 'all 0.3s ease';
@@ -617,6 +622,7 @@ function showDeleteConfirm(eff, sectionId) {
 }
 
 function executeDeleteSection(sectionId, eff) {
+    if (window._isReadOnly) return;
     document.getElementById('deleteSectionModal').classList.remove('show');
     window._localActionInProgress = true;
 
@@ -707,6 +713,7 @@ function renderRestorePanel() {
 
 // Fully surgical restore - no full re-render
 function restoreSection(sectionId) {
+    if (window._isReadOnly) return;
     window._localActionInProgress = true;
 
     const hidden = getHiddenSections().filter(h => h.id !== sectionId);
@@ -791,6 +798,7 @@ function openNote(itemId) {
     setTimeout(() => document.getElementById('notesTextarea').focus(), 100);
 }
 function saveNote() {
+    if (window._isReadOnly) return;
     if (!activeNoteItem) return;
     window._localActionInProgress = true;
     const notes = getNotes();
@@ -1080,50 +1088,105 @@ async function loadFromFirebase() {
     if (!creationDate) {
         creationDate = dateKey(0);
         ss('creationDate', creationDate);
-        FirebaseApp.save('meta/creationDate', creationDate);
+        if (!window._isReadOnly) FirebaseApp.save('meta/creationDate', creationDate);
     }
 
     renderSections(); updateStreak();
     window._isRemoteUpdate = false;
 }
 
+// ===== SOCIAL / FRIEND VIEW (v3.6.0) =====
+function openSocialModal() {
+    const user = FirebaseApp.user;
+    if (user) document.getElementById('myIdInput').value = user.uid;
+    document.getElementById('socialModal').classList.add('show');
+}
+
+async function viewOtherUser(targetUid) {
+    if (!targetUid) return;
+    if (FirebaseApp.user && targetUid === FirebaseApp.user.uid) {
+        exitReadOnly(); return;
+    }
+    
+    document.getElementById('socialModal').classList.remove('show');
+    FirebaseApp.toast('Đang tải dữ liệu bạn bè... ⏳');
+    
+    // Switch to Read-Only Mode
+    window._isReadOnly = true;
+    document.querySelector('.app-container').classList.add('read-only-mode');
+    document.getElementById('viewingBanner').style.display = 'block';
+    
+    // Try to get user info if possible (public profile)
+    // For now we just show the UID if name unknown
+    document.getElementById('viewingName').textContent = targetUid.slice(0, 8) + '...';
+
+    // Switch Firebase Listener
+    FirebaseApp.listenToUid(targetUid, data => {
+        if (!data) {
+            FirebaseApp.toast('Không tìm thấy dữ liệu người này!');
+            exitReadOnly();
+            return;
+        }
+        handleRemoteUpdate(data);
+    });
+}
+
+function exitReadOnly() {
+    window._isReadOnly = false;
+    document.querySelector('.app-container').classList.remove('read-only-mode');
+    document.getElementById('viewingBanner').style.display = 'none';
+    
+    // Resume listening to self
+    FirebaseApp.listenAll(handleRemoteUpdate);
+    FirebaseApp.toast('Đã quay lại Checklist của bạn ✓');
+}
+
 let _lastDataHash = '';
 let _syncDebounce = null;
 
-function setupRealtimeSync() {
-    FirebaseApp.listenAll(data => {
-        if (!data) return;
-        
-        // Quick hash check to avoid redundant work
-        const newHash = JSON.stringify(data);
-        if (newHash === _lastDataHash) return;
-        _lastDataHash = newHash;
+function handleRemoteUpdate(data) {
+    if (!data) return;
+    const newHash = JSON.stringify(data);
+    if (newHash === _lastDataHash) return;
+    _lastDataHash = newHash;
 
-        // Skip re-render if a local action is in progress
+    if (window._localActionInProgress) return;
+
+    if (_syncDebounce) clearTimeout(_syncDebounce);
+    _syncDebounce = setTimeout(() => {
         if (window._localActionInProgress) return;
-
-        // Debounce the render to catch multiple rapid updates (e.g. from updateStreak)
-        if (_syncDebounce) clearTimeout(_syncDebounce);
-        _syncDebounce = setTimeout(() => {
-            if (window._localActionInProgress) return;
-            window._isRemoteUpdate = true;
-            if (data.checklists) Object.entries(data.checklists).forEach(([k,v]) => ss(`checklist_${k}`, v));
-            if (data.notes) Object.entries(data.notes).forEach(([k,v]) => ss(`notes_${k}`, v));
-            if (data.customTasks) Object.entries(data.customTasks).forEach(([k,v]) => ss(`custom_${k}`, v));
-            if (data.sections) Object.entries(data.sections).forEach(([k,v]) => ss(`sections_${k}`, v));
-            if (data.sectionOverrides) ss('_section_overrides', data.sectionOverrides);
-            if (data.taskTextOverrides) ss('_task_text_overrides', data.taskTextOverrides);
-            if (data.hiddenSections) {
-                if (typeof data.hiddenSections === 'object' && !Array.isArray(data.hiddenSections)) {
-                    Object.entries(data.hiddenSections).forEach(([k,v]) => ss(`_hidden_sections_${k}`, v));
-                } else {
-                    ss('_hidden_sections', data.hiddenSections);
-                }
+        window._isRemoteUpdate = true;
+        
+        if (data.checklists) Object.entries(data.checklists).forEach(([k,v]) => ss(`checklist_${k}`, v));
+        if (data.notes) Object.entries(data.notes).forEach(([k,v]) => ss(`notes_${k}`, v));
+        if (data.customTasks) Object.entries(data.customTasks).forEach(([k,v]) => ss(`custom_${k}`, v));
+        if (data.sections) Object.entries(data.sections).forEach(([k,v]) => ss(`sections_${k}`, v));
+        if (data.sectionOverrides) ss('_section_overrides', data.sectionOverrides);
+        if (data.taskTextOverrides) ss('_task_text_overrides', data.taskTextOverrides);
+        if (data.hiddenSections) {
+            if (typeof data.hiddenSections === 'object' && !Array.isArray(data.hiddenSections)) {
+                Object.entries(data.hiddenSections).forEach(([k,v]) => ss(`_hidden_sections_${k}`, v));
+            } else {
+                ss('_hidden_sections', data.hiddenSections);
             }
-            renderSections(); updateStreak();
-            window._isRemoteUpdate = false;
-        }, 100);
-    });
+        }
+        if (data.meta) {
+            Object.entries(data.meta).forEach(([k,v]) => {
+                if (['bestStreak','totalCompletedDays','creationDate'].includes(k)) {
+                    ss(k, v);
+                    if (k === 'creationDate') creationDate = v;
+                }
+                else if (k.startsWith('completed_') || k.startsWith('celebrated_')) ss(k, v);
+            });
+        }
+        
+        renderSections(); updateStreak();
+        window._isRemoteUpdate = false;
+    }, 100);
+}
+
+function setupRealtimeSync() {
+    FirebaseApp.listenAll(handleRemoteUpdate);
 }
 
 async function uploadLocalToFirebase() {
@@ -1174,6 +1237,13 @@ function init() {
     renderSections();
     updateStreak();
     renderMood();
+
+    // Check for Friend View UID in URL
+    const params = new URLSearchParams(window.location.search);
+    const targetUid = params.get('uid');
+    if (targetUid) {
+        setTimeout(() => viewOtherUser(targetUid), 1000);
+    }
 
     
     document.getElementById('motivationQuote').textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
@@ -1424,7 +1494,23 @@ function init() {
         }
     });
 
+    document.getElementById('socialBtn')?.addEventListener('click', openSocialModal);
+    document.getElementById('socialClose')?.addEventListener('click', () => document.getElementById('socialModal').classList.remove('show'));
+    document.getElementById('copyMyIdBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('myIdInput');
+        input.select();
+        document.execCommand('copy');
+        FirebaseApp.toast('Đã copy ID của bạn ✓');
+    });
+    document.getElementById('viewFriendBtn')?.addEventListener('click', () => {
+        const uid = document.getElementById('friendIdInput').value.trim();
+        if (uid) viewOtherUser(uid);
+        else document.getElementById('friendIdInput').focus();
+    });
+    document.getElementById('viewBackBtn')?.addEventListener('click', exitReadOnly);
+
     document.getElementById('moodOptions')?.addEventListener('click', e => {
+        if (window._isReadOnly) return;
         const btn = e.target.closest('.mood-btn');
         if (btn) {
             const mood = btn.dataset.mood;
@@ -1443,6 +1529,7 @@ function renderMood() {
 }
 
 function updateTotalXP(delta) {
+    if (window._isReadOnly) return;
     try {
         const raw = localStorage.getItem('totalXP');
         let curXP = 0;

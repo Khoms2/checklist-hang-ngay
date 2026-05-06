@@ -10,13 +10,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css?v=3.5.2">
+    <link rel="stylesheet" href="index.css?v=3.6.0">
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
+    <!-- Viewing Mode Banner -->
+    <div class="viewing-banner" id="viewingBanner" style="display:none">
+        <div class="viewing-content">
+            <span class="viewing-icon">👁️</span>
+            <span class="viewing-text">Đang xem Checklist của: <strong id="viewingName">...</strong></span>
+            <button class="view-back-btn" id="viewBackBtn">⬅ Quay lại của tôi</button>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
@@ -70,7 +79,7 @@
                         </div>
 
                         <div class="header-actions">
-                            <button class="share-btn" id="copyShareURL" title="Chia sẻ dữ liệu qua link">🔗 SHARE</button>
+                            <button class="share-btn" id="socialBtn" title="Xem tiến độ bạn bè">👥 BẠN BÈ</button>
                             <button class="reset-btn" id="resetBtn" title="Xóa toàn bộ tiến độ hôm nay">🗑️ RESET</button>
                         </div>
                     </div>
@@ -134,7 +143,7 @@
             <div class="motivation-quote" id="motivationQuote">
                 "Mỗi ngày đều là cơ hội để trở nên giỏi hơn!"
             </div>
-            <div class="version-badge" id="versionBadge">v3.5.2 · 06/05/2026</div>
+            <div class="version-badge" id="versionBadge">v3.6.0 · 06/05/2026</div>
         </footer>
     </div>
 
@@ -343,8 +352,35 @@
         </div>
     </div>
 
-    <script src="sync.js?v=3.5.2"></script>
-    <script src="app.js?v=3.5.2"></script>
+    <!-- Social Modal -->
+    <div class="modal-overlay" id="socialModal">
+        <div class="modal-content social-modal">
+            <div class="modal-header">
+                <h3>👥 Kết nối & Theo dõi</h3>
+                <button class="modal-close" id="socialClose">✕</button>
+            </div>
+            <div class="social-body">
+                <div class="my-id-box">
+                    <label>ID của bạn (Chia sẻ cho bạn bè):</label>
+                    <div class="id-input-group">
+                        <input type="text" id="myIdInput" readonly value="...">
+                        <button id="copyMyIdBtn">📋 Copy</button>
+                    </div>
+                </div>
+                <div class="friend-id-box">
+                    <label>Xem Checklist bạn bè (Nhập ID):</label>
+                    <div class="id-input-group">
+                        <input type="text" id="friendIdInput" placeholder="Nhập ID tại đây...">
+                        <button id="viewFriendBtn">👁️ Xem</button>
+                    </div>
+                    <p class="social-hint">Bạn chỉ có thể xem, không thể chỉnh sửa dữ liệu người khác.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sync.js?v=3.6.0"></script>
+    <script src="app.js?v=3.6.0"></script>
 </body>
 
 </html>

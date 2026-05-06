@@ -2509,3 +2509,103 @@ body::before {
     .section-title { font-size: 0.85rem; }
     .streak-number { font-size: 1.2rem; }
 }
+
+/* ===== SOCIAL & VIEWING MODE (v3.6.0) ===== */
+.viewing-banner {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    color: #fff;
+    z-index: 9999;
+    padding: 8px 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    animation: banner-slide-down 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.viewing-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    font-size: 0.9rem;
+}
+
+.view-back-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.4);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.view-back-btn:hover { background: rgba(255,255,255,0.3); }
+
+@keyframes banner-slide-down {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+}
+
+.social-modal { max-width: 450px; }
+.social-body { padding: 20px 0; display: flex; flex-direction: column; gap: 25px; }
+
+.id-input-group {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.id-input-group input {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text-primary);
+    font-family: monospace;
+    font-size: 0.9rem;
+}
+
+.id-input-group button {
+    background: var(--accent-blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0 15px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.id-input-group button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+
+.social-hint {
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Read-only UI state */
+.app-container.read-only-mode {
+    padding-top: 50px; /* Space for banner */
+}
+
+.read-only-mode .checklist-item { cursor: default; }
+.read-only-mode .checklist-item:hover { background: transparent; }
+.read-only-mode .item-checkbox { pointer-events: none; opacity: 0.7; }
+.read-only-mode .add-task-btn, 
+.read-only-mode .section-actions,
+.read-only-mode .add-group-panel,
+.read-only-mode .reset-btn,
+.read-only-mode .item-edit-text-btn,
+.read-only-mode .item-delete-btn { display: none !important; }
+
+@media (max-width: 600px) {
+    .viewing-content { flex-direction: column; gap: 8px; text-align: center; }
+    .view-back-btn { width: 100%; }
+}

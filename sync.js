@@ -71,6 +71,17 @@ const FirebaseApp = {
         });
         this._listeners.push(ref);
     },
+    
+    listenToUid(uid, callback) {
+        if (!this.db || !uid) return;
+        this._listeners.forEach(r => r.off());
+        this._listeners = [];
+        const ref = this.db.ref(`users/${uid}`);
+        ref.on('value', snap => {
+            callback(snap.val());
+        });
+        this._listeners.push(ref);
+    },
 
     async uploadAll(data) {
         if (!this.db || !this.user) return;
