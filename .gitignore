@@ -1,0 +1,12 @@
+# Local Netlify folder
+.netlify
+# Firebase
+.firebase
+# IDE
+.vscode
+.idea
+# OS files
+Thumbs.db
+.DS_Store
+# Gemini/Antigravity logs
+.gemini

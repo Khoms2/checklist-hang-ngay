@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Checklist hằng ngày cho Shopee Runner và Tester - Theo dõi tiến độ học tập và công việc mỗi ngày">
-    <title>📋 Checklist Hằng Ngày | Shopee + Tester</title>
+    <meta name="description"
+        content="Checklist hằng ngày cho Shopee Runner và Tester - Theo dõi tiến độ học tập và công việc mỗi ngày">
+    <title>📋 Daily Checklist Hằng Ngày </title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css?v=3.3.0">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 </head>
+
 <body>
     <div class="app-container">
         <!-- Header -->
@@ -20,9 +26,14 @@
                         <span class="title-icon">✅</span>
                         <span>Daily Checklist</span>
                     </h1>
-                    <p class="app-subtitle">Shopee + Tester • Mỗi ngày tiến bộ hơn</p>
+                    <p class="app-subtitle"> Mỗi ngày tiến bộ hơn </p>
                 </div>
                 <div class="header-right">
+                    <div class="user-info" id="userInfo" style="display:none">
+                        <img class="user-avatar" id="userAvatar" alt="">
+                        <span class="user-name" id="userName"></span>
+                        <button class="logout-btn" id="logoutBtn" title="Đăng xuất">🚪</button>
+                    </div>
                     <div class="date-navigator">
                         <button class="nav-btn" id="prevDay" aria-label="Ngày trước">‹</button>
                         <div class="date-display" id="dateDisplay">
@@ -31,9 +42,22 @@
                         </div>
                         <button class="nav-btn" id="nextDay" aria-label="Ngày sau">›</button>
                     </div>
-                    <button class="reset-btn" id="resetBtn" title="Reset tất cả">
-                        <span>🔄</span> Reset
+                    <button class="share-btn" id="copyShareURL" title="Chia sẻ dữ liệu qua link">
+                        <span>🔗</span> Share
                     </button>
+                    <button class="reset-btn" id="resetBtn" title="Reset tất cả">
+                        <span>🗑️</span> Reset
+                    </button>
+                    <div class="mood-tracker">
+                        <span class="mood-label">Mood</span>
+                        <div class="mood-options" id="moodOptions">
+                            <button class="mood-btn" data-mood="😄" title="Tuyệt vời">😄</button>
+                            <button class="mood-btn" data-mood="😊" title="Tốt">😊</button>
+                            <button class="mood-btn" data-mood="😐" title="Bình thường">😐</button>
+                            <button class="mood-btn" data-mood="😞" title="Không tốt">😞</button>
+                            <button class="mood-btn" data-mood="😩" title="Tệ quá">😩</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- Overall Progress -->
@@ -80,22 +104,25 @@
                         <span class="streak-label">Tổng ngày hoàn thành</span>
                     </div>
                 </div>
+                <div class="streak-card xp-card">
+                    <span class="streak-icon">⭐</span>
+                    <div class="streak-info">
+                        <span class="streak-number" id="totalXP">0</span>
+                        <span class="streak-label">Tổng XP · <span id="xpLevel">Lv.1</span></span>
+                    </div>
+                    <div class="xp-level-bar">
+                        <div class="xp-level-fill" id="xpLevelBar"></div>
+                    </div>
+                </div>
             </div>
             <div class="motivation-quote" id="motivationQuote">
                 "Mỗi ngày đều là cơ hội để trở nên giỏi hơn!"
             </div>
+            <div class="version-badge" id="versionBadge">v3.3.2 · 06/05/2026</div>
         </footer>
     </div>
 
-    <!-- Celebration Overlay -->
-    <div class="celebration-overlay" id="celebrationOverlay">
-        <div class="celebration-content">
-            <div class="celebration-emoji">🎉</div>
-            <h2>Tuyệt vời!</h2>
-            <p>Bạn đã hoàn thành tất cả nhiệm vụ hôm nay!</p>
-            <button class="celebration-close" id="celebrationClose">Tiếp tục 💪</button>
-        </div>
-    </div>
+
 
     <!-- Notes Modal -->
     <div class="modal-overlay" id="notesModal">
@@ -104,13 +131,202 @@
                 <h3 id="notesTitle">📝 Ghi chú</h3>
                 <button class="modal-close" id="notesClose">✕</button>
             </div>
-            <textarea class="notes-textarea" id="notesTextarea" placeholder="Ghi chú của bạn..."></textarea>
+            <textarea class="notes-textarea" id="notesTextarea" placeholder="Ghi chú của bạn..." maxlength="500" oninput="updateModalCharCount('notesTextarea', 'notesCharCount', 500)"></textarea>
+            <div class="char-count-modal" id="notesCharCount">0 / 500 ký tự</div>
             <div class="modal-actions">
                 <button class="modal-btn save" id="notesSave">💾 Lưu</button>
             </div>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginOverlay" style="display:none">
+        <div class="login-card">
+            <div class="login-header">
+                <span class="login-logo">✅</span>
+                <h2 class="login-title">Daily Checklist</h2>
+                <p class="login-subtitle">Mỗi ngày tiến bộ hơn</p>
+            </div>
+            <div class="login-body">
+                <button class="google-btn" id="googleLoginBtn">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4"
+                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05"
+                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853"
+                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                    </svg>
+                    Đăng nhập bằng Google
+                </button>
+                <div class="login-divider"><span>hoặc</span></div>
+                <input type="email" class="login-input" id="loginEmail" placeholder="Email">
+                <input type="password" class="login-input" id="loginPassword" placeholder="Mật khẩu">
+                <div class="login-error" id="loginError"></div>
+                <div class="login-actions">
+                    <button class="login-btn primary" id="loginBtn">Đăng nhập</button>
+                    <button class="login-btn secondary" id="registerBtn">Đăng ký</button>
+                </div>
+            </div>
+            <div class="login-footer">
+                <button class="login-config-btn" id="openConfigBtn">⚙️ Cấu hình Firebase</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Config Modal -->
+    <div class="modal-overlay" id="configModal">
+        <div class="modal-content sync-modal-content">
+            <div class="modal-header">
+                <h3>🔥 Cấu hình Firebase</h3>
+                <button class="modal-close" id="configModalClose">✕</button>
+            </div>
+            <div class="sync-settings-body">
+                <div class="sync-section">
+                    <label class="sync-label">🔥 Firebase Config JSON</label>
+                    <p class="sync-hint">Paste config từ Firebase Console vào đây</p>
+                    <textarea class="sync-textarea" id="firebaseConfigInput" placeholder='{
+  "apiKey": "...",
+  "authDomain": "...",
+  "databaseURL": "...",
+  "projectId": "..."
+}'></textarea>
+                    <details class="sync-guide" open>
+                        <summary>📖 Hướng dẫn tạo Firebase (miễn phí)</summary>
+                        <ol>
+                            <li>Vào <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a>
+                            </li>
+                            <li>Bấm "Create a project" → đặt tên → tạo</li>
+                            <li>Vào <b>Build → Realtime Database</b> → Create Database → <b>Start in test mode</b></li>
+                            <li>Vào <b>Build → Authentication</b> → Get started</li>
+                            <li>Bật <b>Google</b> và/hoặc <b>Email/Password</b> provider</li>
+                            <li>Vào <b>Project Settings (⚙️)</b> → cuộn xuống "Your apps"</li>
+                            <li>Bấm <b>&lt;/&gt;</b> (Web) → đặt tên → Register</li>
+                            <li>Copy phần <code>firebaseConfig = {...}</code> → paste vào ô trên</li>
+                        </ol>
+                    </details>
+                </div>
+                <div class="sync-actions">
+                    <button class="modal-btn save" id="configSaveBtn">💾 Lưu & Kết nối</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Edit Section Modal -->
+    <div class="modal-overlay" id="editSectionModal">
+        <div class="modal-content edit-section-modal">
+            <div class="modal-header">
+                <h3>✏️ Chỉnh sửa nhóm</h3>
+                <button class="modal-close" id="editSectionClose">✕</button>
+            </div>
+            <div class="edit-section-body">
+                <div class="edit-field">
+                    <label class="edit-label">Tên nhóm</label>
+                    <input type="text" class="edit-input" id="editSectionTitle" maxlength="50"
+                        placeholder="VD: BAN NGÀY – CHẠY Shopee">
+                    <div class="char-count-modal" id="editTitleCount">0 / 50 ký tự</div>
+                </div>
+                <div class="edit-field">
+                    <label class="edit-label">Mô tả</label>
+                    <input type="text" class="edit-input" id="editSectionSubtitle" maxlength="100"
+                        placeholder="VD: Hoàn thành mục tiêu chạy đơn">
+                    <div class="char-count-modal" id="editSubtitleCount">0 / 100 ký tự</div>
+                </div>
+                <div class="edit-field">
+                    <label class="edit-label">Chọn icon</label>
+                    <div class="icon-picker" id="iconPicker"></div>
+                </div>
+            </div>
+            <div class="modal-actions edit-actions">
+                <button class="modal-btn reset-section-btn" id="editSectionReset">🔄 Mặc định</button>
+                <button class="modal-btn save" id="editSectionSave">💾 Lưu</button>
+            </div>
+        </div>
+    </div>
+    <!-- Delete Section Confirm Modal -->
+    <div class="modal-overlay" id="deleteSectionModal">
+        <div class="modal-content delete-confirm-modal">
+            <div class="delete-confirm-icon">⚠️</div>
+            <h3 class="delete-confirm-title">Xóa nhóm này?</h3>
+            <p class="delete-confirm-name" id="deleteSectionName"></p>
+            <p class="delete-confirm-desc">Tất cả nhiệm vụ trong nhóm này sẽ bị ẩn.<br>Bạn có thể khôi phục lại bất kỳ
+                lúc nào.</p>
+            <div class="delete-confirm-actions">
+                <button class="delete-confirm-btn cancel" id="deleteSectionCancel">Không</button>
+                <button class="delete-confirm-btn confirm" id="deleteSectionConfirm">Xóa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirm Modal -->
+    <div class="modal-overlay" id="resetConfirmModal">
+        <div class="modal-content delete-confirm-modal">
+            <div class="delete-confirm-icon">🗑️</div>
+            <h3 class="delete-confirm-title">Reset nhiệm vụ?</h3>
+            <p class="delete-confirm-desc">Tất cả nhiệm vụ ngày này sẽ được bỏ đánh dấu.<br>Bạn có chắc chắn không?</p>
+            <div class="delete-confirm-actions">
+                <button class="delete-confirm-btn cancel" id="resetConfirmCancel">Không</button>
+                <button class="delete-confirm-btn confirm" id="resetConfirmOk">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Group Modal -->
+    <div class="modal-overlay" id="addGroupModal">
+        <div class="modal-content edit-section-modal">
+            <div class="modal-header">
+                <h3>＋ Thêm nhóm mới</h3>
+                <button class="modal-close" id="addGroupClose">✕</button>
+            </div>
+            <div class="edit-section-body">
+                <div class="edit-field">
+                    <label class="edit-label">Tên nhóm</label>
+                    <input type="text" class="edit-input" id="addGroupTitle" maxlength="50" placeholder="VD: Học tiếng Anh">
+                    <div class="char-count-modal" id="addTitleCount">0 / 50 ký tự</div>
+                </div>
+                <div class="edit-field">
+                    <label class="edit-label">Mô tả (tùy chọn)</label>
+                    <input type="text" class="edit-input" id="addGroupSubtitle" maxlength="100" placeholder="VD: Mỗi ngày 30 phút">
+                    <div class="char-count-modal" id="addSubtitleCount">0 / 100 ký tự</div>
+                </div>
+                <div class="edit-field">
+                    <label class="edit-label">Chọn icon</label>
+                    <div class="icon-picker" id="newGroupIconPicker"></div>
+                </div>
+            </div>
+            <div class="modal-actions edit-actions">
+                <button class="modal-btn save" id="addGroupSave">＋ Tạo nhóm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copy Groups Modal -->
+    <div class="modal-overlay" id="copyGroupsModal">
+        <div class="modal-content copy-groups-modal">
+            <div class="modal-header">
+                <h3>📋 Sao chép nhóm từ ngày khác</h3>
+                <button class="modal-close" id="copyGroupsClose">✕</button>
+            </div>
+            <p class="copy-groups-desc">Chọn nguồn để áp dụng cấu trúc nhóm cho ngày hiện tại:</p>
+            <div class="copy-days-list" id="copyDaysList"></div>
+        </div>
+    </div>
+
+    <!-- Celebration Overlay -->
+    <div class="celebration-overlay" id="celebrationOverlay">
+        <div class="celebration-content">
+            <div class="celebration-icon">🏆</div>
+            <h2>Tuyệt vời!</h2>
+            <p>Bạn đã hoàn thành tất cả nhiệm vụ hôm nay!</p>
+            <!-- <p class="celebration-subtitle">Tiếp tục 💪</p> -->
+            <button class="celebration-close-btn" id="celebrationCloseBtn">Tiếp tục 💪</button>
+        </div>
+    </div>
+
+    <script src="sync.js?v=3.3.2"></script>
+    <script src="app.js?v=3.3.2"></script>
 </body>
+
 </html>
