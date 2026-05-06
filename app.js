@@ -1507,6 +1507,13 @@ function init() {
         if (uid) viewOtherUser(uid);
         else document.getElementById('friendIdInput').focus();
     });
+    document.getElementById('useMyIdTestBtn')?.addEventListener('click', () => {
+        const myId = document.getElementById('myIdInput').value;
+        if (myId && myId !== '...') {
+            document.getElementById('friendIdInput').value = myId;
+            viewOtherUser(myId);
+        }
+    });
     document.getElementById('viewBackBtn')?.addEventListener('click', exitReadOnly);
 
     document.getElementById('moodOptions')?.addEventListener('click', e => {

@@ -2609,3 +2609,20 @@ body::before {
     .viewing-content { flex-direction: column; gap: 8px; text-align: center; }
     .view-back-btn { width: 100%; }
 }
+
+.social-actions-row {
+    margin-top: 10px;
+}
+
+.text-link-btn {
+    background: none;
+    border: none;
+    color: var(--accent-blue);
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    transition: color 0.2s;
+}
+
+.text-link-btn:hover { color: #8899ff; }
