@@ -2346,3 +2346,89 @@ body::before {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* Mobile Optimizations (v3.3.4 Sync) */
+@media (max-width: 600px) {
+    .app-container {
+        padding: 16px 12px;
+    }
+    
+    .app-header {
+        padding: 20px 16px;
+    }
+
+    .header-content {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .header-left {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .app-title {
+        font-size: 1.5rem;
+        justify-content: center;
+    }
+
+    .header-right {
+        width: 100%;
+        align-items: center;
+    }
+
+    .header-top-row {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .dashboard-toolbar {
+        justify-content: center;
+        width: 100%;
+        gap: 10px;
+    }
+
+    .date-navigator {
+        padding: 4px 10px;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .date-display {
+        min-width: auto;
+        flex: 1;
+    }
+
+    .mood-tracker {
+        width: 100%;
+        justify-content: center;
+        padding: 8px;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .share-btn, .reset-btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .progress-info {
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .progress-label {
+        font-size: 0.8rem;
+    }
+
+    .progress-value {
+        font-size: 1.1rem;
+    }
+}
