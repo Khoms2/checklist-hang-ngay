@@ -29,33 +29,36 @@
                     <p class="app-subtitle"> Mỗi ngày tiến bộ hơn </p>
                 </div>
                 <div class="header-right">
-                    <div class="user-info" id="userInfo" style="display:none">
-                        <img class="user-avatar" id="userAvatar" alt="">
-                        <span class="user-name" id="userName"></span>
-                        <button class="logout-btn" id="logoutBtn" title="Đăng xuất">🚪</button>
-                    </div>
-                    <div class="date-navigator">
-                        <button class="nav-btn" id="prevDay" aria-label="Ngày trước">‹</button>
-                        <div class="date-display" id="dateDisplay">
-                            <span class="date-label" id="dateLabel">Hôm nay</span>
-                            <span class="date-value" id="dateValue">01/05/2026</span>
+                    <div class="header-top-row">
+                        <div class="user-info" id="userInfo" style="display:none">
+                            <img class="user-avatar" id="userAvatar" alt="">
+                            <span class="user-name" id="userName"></span>
+                            <button class="logout-btn" id="logoutBtn" title="Đăng xuất">🚪</button>
                         </div>
-                        <button class="nav-btn" id="nextDay" aria-label="Ngày sau">›</button>
                     </div>
-                    <button class="share-btn" id="copyShareURL" title="Chia sẻ dữ liệu qua link">
-                        <span>🔗</span> Share
-                    </button>
-                    <button class="reset-btn" id="resetBtn" title="Reset tất cả">
-                        <span>🗑️</span> Reset
-                    </button>
-                    <div class="mood-tracker">
-                        <span class="mood-label">Mood</span>
-                        <div class="mood-options" id="moodOptions">
-                            <button class="mood-btn" data-mood="😄" title="Tuyệt vời">😄</button>
-                            <button class="mood-btn" data-mood="😊" title="Tốt">😊</button>
-                            <button class="mood-btn" data-mood="😐" title="Bình thường">😐</button>
-                            <button class="mood-btn" data-mood="😞" title="Không tốt">😞</button>
-                            <button class="mood-btn" data-mood="😩" title="Tệ quá">😩</button>
+                    <div class="dashboard-toolbar">
+                        <div class="date-navigator">
+                            <button class="nav-btn" id="prevDay" aria-label="Ngày trước">‹</button>
+                            <div class="date-display" id="dateDisplay">
+                                <span class="date-label" id="dateLabel">Hôm nay</span>
+                                <span class="date-value" id="dateValue">01/05/2026</span>
+                            </div>
+                            <button class="nav-btn" id="nextDay" aria-label="Ngày sau">›</button>
+                        </div>
+                        
+                        <div class="mood-tracker">
+                            <div class="mood-options" id="moodOptions">
+                                <button class="mood-btn" data-mood="😄" title="Tuyệt vời">😄</button>
+                                <button class="mood-btn" data-mood="😊" title="Tốt">😊</button>
+                                <button class="mood-btn" data-mood="😐" title="Bình thường">😐</button>
+                                <button class="mood-btn" data-mood="😞" title="Không tốt">😞</button>
+                                <button class="mood-btn" data-mood="😩" title="Tệ quá">😩</button>
+                            </div>
+                        </div>
+
+                        <div class="header-actions">
+                            <button class="share-btn" id="copyShareURL" title="Chia sẻ dữ liệu qua link">🔗 Share</button>
+                            <button class="reset-btn" id="resetBtn" title="Reset tất cả">🗑️ Reset</button>
                         </div>
                     </div>
                 </div>
@@ -118,7 +121,7 @@
             <div class="motivation-quote" id="motivationQuote">
                 "Mỗi ngày đều là cơ hội để trở nên giỏi hơn!"
             </div>
-            <div class="version-badge" id="versionBadge">v3.3.2 · 06/05/2026</div>
+            <div class="version-badge" id="versionBadge">v3.3.4 · 06/05/2026</div>
         </footer>
     </div>
 
