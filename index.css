@@ -376,9 +376,10 @@ body::before {
 .section-header-top {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* Align to top to handle multi-line titles better */
+    align-items: flex-start;
     padding: 16px 20px 12px;
     gap: 16px;
+    flex-wrap: wrap; /* CRITICAL: allow wrapping to prevent squeezing */
 }
 
 /* Group Progress Bar (Seamless Integration) */
@@ -449,9 +450,11 @@ body::before {
 .section-meta { 
     display: flex; 
     align-items: center; 
-    gap: 8px; 
+    gap: 10px; 
     flex-shrink: 0;
     margin-left: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 /* Edit/Delete buttons — hidden until hover */
@@ -2395,18 +2398,34 @@ body::before {
     .share-btn, .reset-btn { flex: 1; justify-content: center; font-size: 0.7rem; }
 
     /* Section Cards Mobile */
+    .section-delete-btn {
+        padding: 6px;
+        font-size: 0; /* Hide text on mobile */
+    }
+    
+    .section-delete-btn::before {
+        content: '🗑️';
+        font-size: 0.85rem;
+    }
+
     .section-header-top {
         flex-direction: column;
         align-items: flex-start;
-        padding: 12px 14px;
-        gap: 10px;
+        padding: 14px 16px;
+        gap: 14px;
+    }
+
+    .section-title-group {
+        width: 100%;
+        min-width: 200px; /* Prevent squeezing */
     }
 
     .section-meta {
         width: 100%;
-        justify-content: space-between;
-        padding-top: 10px;
+        justify-content: flex-start;
+        padding-top: 12px;
         border-top: 1px solid rgba(255,255,255,0.04);
+        margin-left: 0;
     }
 
     .checklist-item { padding: 12px 10px; }
