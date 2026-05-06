@@ -366,8 +366,8 @@ body::before {
     cursor: pointer;
     user-select: none;
     transition: var(--transition);
-    border-left: 3px solid transparent;
     position: relative;
+    overflow: hidden;
 }
 
 .section-header-top {
@@ -378,22 +378,23 @@ body::before {
     gap: 12px;
 }
 
-/* Group Progress Bar */
+/* Group Progress Bar (Seamless Integration) */
 .group-progress-container {
-    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
     height: 4px;
-    background: rgba(255,255,255,0.04);
-    position: relative;
+    background: rgba(255,255,255,0.06);
     overflow: hidden;
-    border-bottom-left-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
 }
 
 .group-progress-bar {
     height: 100%;
     width: 0%;
-    background: var(--accent-blue);
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
 }
 
 .section-header:hover { background: rgba(255,255,255,0.02); }
