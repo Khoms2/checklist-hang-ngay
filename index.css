@@ -2646,6 +2646,11 @@ body::before {
 
 .forgot-pwd-modal { max-width: 420px; }
 .forgot-pwd-body { padding: 0 24px 24px; }
+
+/* Forgot password & OTP modals must appear ABOVE login overlay (z-index: 150) */
+#forgotPwdModal { z-index: 200; }
+#otpModal { z-index: 200; }
+#changePwdModal { z-index: 200; }
 .forgot-pwd-desc {
     font-size: 0.85rem;
     color: var(--text-secondary);

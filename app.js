@@ -1254,8 +1254,15 @@ function startOtpFlow(email, password, purpose) {
     // Start 60s resend cooldown
     startResendCooldown(60);
     
-    // Show OTP as toast for demo/testing (in production, send via email service)
-    FirebaseApp.toast(`Mã OTP: ${otp} (kiểm tra email)`);
+    // Send OTP via real email (EmailJS) or fallback to console
+    sendOTPEmail(email, otp).then(sent => {
+        if (sent) {
+            FirebaseApp.toast('Đã gửi mã OTP đến email của bạn 📧');
+        } else {
+            // Fallback: show in toast for demo/testing when EmailJS is not configured
+            FirebaseApp.toast(`Mã OTP: ${otp} (Cấu hình EmailJS để gửi email thật)`);
+        }
+    });
     console.log(`[OTP] Code for ${email}: ${otp}`);
 }
 
@@ -1469,6 +1476,9 @@ function resetChangePwdModal() {
 
 // ===== INIT =====
 function init() {
+    // Init EmailJS for OTP emails
+    initEmailJS();
+    
     // Check URL import
     if (window.location.hash.startsWith('#data=')) {
         if (importFromURL(window.location.hash)) {
@@ -1748,7 +1758,13 @@ function init() {
             document.querySelectorAll('.otp-digit').forEach(d => { d.value = ''; d.classList.remove('filled', 'error'); });
             document.querySelector('.otp-digit[data-otp-index="0"]')?.focus();
             document.getElementById('otpError').textContent = '';
-            FirebaseApp.toast(`Mã OTP mới: ${otp} (kiểm tra email)`);
+            sendOTPEmail(_pendingOtpEmail, otp).then(sent => {
+                if (sent) {
+                    FirebaseApp.toast('Đã gửi lại mã OTP mới 📧');
+                } else {
+                    FirebaseApp.toast(`Mã OTP mới: ${otp} (Cấu hình EmailJS để gửi email thật)`);
+                }
+            });
             console.log(`[OTP] New code for ${_pendingOtpEmail}: ${otp}`);
         }
     });

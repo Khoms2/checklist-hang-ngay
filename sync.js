@@ -9,6 +9,60 @@ const FIREBASE_CONFIG = {
     appId: "1:1058298483551:web:0b170343a7892e304e1cea"
 };
 
+// ===== EMAILJS CONFIG (for sending real OTP emails) =====
+const EMAILJS_CONFIG = {
+    publicKey: "YOUR_EMAILJS_PUBLIC_KEY",    // Replace with your EmailJS public key
+    serviceId: "YOUR_EMAILJS_SERVICE_ID",    // Replace with your EmailJS service ID
+    templateId: "YOUR_EMAILJS_TEMPLATE_ID"   // Replace with your EmailJS template ID
+};
+
+// Load saved EmailJS config from localStorage (user can configure once)
+function getEmailJSConfig() {
+    try {
+        const saved = localStorage.getItem('_emailjs_config');
+        if (saved) return JSON.parse(saved);
+    } catch {}
+    return EMAILJS_CONFIG;
+}
+
+function saveEmailJSConfig(cfg) {
+    localStorage.setItem('_emailjs_config', JSON.stringify(cfg));
+}
+
+function isEmailJSConfigured() {
+    const cfg = getEmailJSConfig();
+    return cfg.publicKey && !cfg.publicKey.startsWith('YOUR_');
+}
+
+// Initialize EmailJS
+function initEmailJS() {
+    const cfg = getEmailJSConfig();
+    if (isEmailJSConfigured()) {
+        try { emailjs.init({ publicKey: cfg.publicKey }); } catch(e) { console.warn('EmailJS init error:', e); }
+    }
+}
+
+// Send OTP via real email using EmailJS
+async function sendOTPEmail(toEmail, otpCode) {
+    const cfg = getEmailJSConfig();
+    if (!isEmailJSConfigured()) {
+        console.warn('[OTP] EmailJS not configured - OTP shown in toast only');
+        return false;
+    }
+    try {
+        await emailjs.send(cfg.serviceId, cfg.templateId, {
+            to_email: toEmail,
+            otp_code: otpCode,
+            app_name: 'Daily Checklist',
+            expire_time: '5 phút'
+        });
+        return true;
+    } catch (e) {
+        console.error('[OTP] Email send failed:', e);
+        return false;
+    }
+}
+
 const FirebaseApp = {
     db: null, auth: null, user: null, _listeners: [],
 
