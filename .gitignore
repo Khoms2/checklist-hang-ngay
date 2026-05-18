@@ -10,3 +10,8 @@ Thumbs.db
 .DS_Store
 # Gemini/Antigravity logs
 .gemini
+
+# Backups and temporary files
+*.backup_*
+temp_*
+restored_*
